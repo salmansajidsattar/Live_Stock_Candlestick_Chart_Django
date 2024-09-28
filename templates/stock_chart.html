@@ -1,0 +1,53 @@
+<!-- stock_app/templates/stock_app/stock_chart.html -->
+{% extends "base.html" %}
+
+{% block title %}Stock Candlestick Chart{% endblock %}
+
+{% block content %}
+    <h1 class="text-2xl font-semibold mb-4">Stock Candlestick Chart</h1>
+    <form id="stock-form" method="get" action="{% url 'stock_chart' %}" class="mb-4">
+        <label for="symbol" class="block text-lg mb-2">Enter Stock Symbol:</label>
+        <input type="text" id="symbol" name="symbol" class="border p-2 rounded w-full mb-2" placeholder="e.g., TSLA" value="{{ symbol }}" required>
+        <label for="refresh-rate" class="block text-lg mb-2">Refresh Rate (seconds):</label>
+        <input type="number" id="refresh-rate" name="refresh_rate" class="border p-2 rounded w-full mb-2" value="300" required>
+        <button type="submit" class="bg-blue-600 text-white p-2 rounded">Get Chart</button>
+    </form>
+    <div id="chart" style="height: 600px;">
+        {% if chart %}
+            <img src="data:image/png;base64,{{ chart }}" alt="Stock Candlestick Chart" style="width: 100%; height: 100%;"/>
+        {% elif not chart and symbol %}
+            <p class="text-red-600">Invalid stock symbol or data not available.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('stock-form');
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetchChart();
+    });
+
+    let refreshInterval;
+
+    function fetchChart() {
+        const symbol = document.getElementById('symbol').value;
+        const refreshRate = document.getElementById('refresh-rate').value * 1000; // Convert to milliseconds
+        clearInterval(refreshInterval); // Clear previous interval
+        fetch(`/stock/chart/?symbol=${symbol}`)
+            .then(response => response.json())
+            .then(data => {
+                const chartDiv = document.getElementById('chart');
+                if (data.chart) {
+                    chartDiv.innerHTML = `<img src="data:image/png;base64,${data.chart}" alt="Stock Candlestick Chart" style="width: 100%; height: 100%;"/>`;
+                } else {
+                    chartDiv.innerHTML = `<p class="text-red-600">${data.error}</p>`;
+                }
+            });
+        refreshInterval = setInterval(fetchChart, refreshRate);
+    }
+
+    fetchChart(); // Initial chart fetch
+</script>
+{% endblock %}
