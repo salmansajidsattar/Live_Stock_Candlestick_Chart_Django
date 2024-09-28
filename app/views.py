@@ -10,7 +10,7 @@ import requests
 
 # Create your views here.
 def fetch_stock_data(symbol):
-    api_key = 'C1HODZSUTNBVXCID'
+    api_key = ''
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&apikey={api_key}'
     response = requests.get(url)
     data = response.json()
